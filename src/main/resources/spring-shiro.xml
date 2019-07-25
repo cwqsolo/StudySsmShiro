@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-lazy-init="true">
+
+    <!-- 配置安全管理器securityManager， 缓存技术: 缓存管理 realm:负责获取处理数据 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myShiroRealm" />
+        <property name="cacheManager" ref="cacheManager" />
+    </bean>
+
+    <!-- 配置进行授权和认证的 Realm -->
+    <bean id="myShiroRealm" class="com.studyssm.shiro.MyRealm">
+        <property name="cacheManager" ref="cacheManager" />
+    </bean>
+
+    <!-- 配置缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager" />
+
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+    <!-- shiro的核心配置:  配置shiroFileter id名必须与web.xml中的filtername保持一致 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager" />
+        <!-- 要求登录时的链接(可根据项目的URL进行替换),非必须的属性,默认会自动寻找Web工程根目录下的"/login.html"页面 -->
+        <property name="loginUrl" value="/login.jsp" />
+        <!-- 登录成功后要跳转的连接 -->
+        <property name="successUrl" value="/index.jsp" />
+        <property name="unauthorizedUrl" value="/unauthorized.jsp" />
+        <!-- shiro过滤器的具体配置 -->
+        <!-- anon-匿名访问，authc-需要认证 -->
+        <!-- /logout=logout 是配置默认的退出，无需自己写controller，会自动清理 -->
+        <property name="filterChainDefinitions">
+            <value>
+                /login.jsp = anon
+                /user/logon = anon
+                /index.jsp = authc
+                /jsp/** = roles[admin]
+                /jsp/** = roles[user]
+                /logout=logout
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+</beans>
